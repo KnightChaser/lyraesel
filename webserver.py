@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 import base64
+import random
 
 app = FastAPI()
 
@@ -19,10 +20,17 @@ def read_kaldrexx():
     # Load static/kaldrexx.exe and serve it after converting to BASE64
     try:
         with open("static/kaldrexx.exe", "rb") as kaldrexx:
-            executable_binary = kaldrexx.read()
-            executable_base64 = base64.b64encode(executable_binary).decode("utf-8")
-            return {"executable": executable_base64}
+            executableBinary = kaldrexx.read()
+            executableBase64Encoded = base64.b64encode(executableBinary).decode("utf-8")
+            randomCyclicXORKey = ''.join(random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for i in range(2048))
+            return {"executableEncrypted": stringCyclicXOR(executableBase64Encoded, randomCyclicXORKey), 
+                    "key": randomCyclicXORKey}
     except FileNotFoundError:
         return {"error": "File not found"}
     except Exception as e:
         return {"error": f"An error occurred: {e}"}
+
+# XOR the string with the key in a cyclic manner
+def stringCyclicXOR(string:str, key:str) -> str:
+    cyclicKey:str = key * (len(string) // len(key)) + key[:len(string) % len(key)]
+    return ''.join(chr(ord(c) ^ ord(k)) for c, k in zip(string, cyclicKey))
